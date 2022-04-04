@@ -2291,6 +2291,7 @@ name = "sokoban_rs"
 version = "0.1.0"
 dependencies = [
  "ggez",
+ "glam",
  "specs",
 ]
 
