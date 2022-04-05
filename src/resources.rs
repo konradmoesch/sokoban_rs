@@ -1,5 +1,6 @@
 use std::fmt;
 use std::fmt::Display;
+use std::time::Duration;
 use ggez::event::KeyCode;
 use specs::World;
 
@@ -7,6 +8,11 @@ use specs::World;
 #[derive(Default)]
 pub struct InputQueue {
     pub keys_pressed: Vec<KeyCode>,
+}
+
+#[derive(Default)]
+pub struct Time {
+    pub delta: Duration,
 }
 
 #[derive(Default)]
@@ -39,4 +45,5 @@ impl Display for GameplayState {
 pub fn register_resources(world: &mut World) {
     world.insert(InputQueue::default());
     world.insert(Gameplay::default());
+    world.insert(Time::default());
 }
