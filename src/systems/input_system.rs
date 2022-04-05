@@ -1,15 +1,19 @@
-use std::collections::HashMap;
+use crate::components::*;
+use crate::constants::*;
+use crate::events::{EntityMoved, Event};
+use crate::resources::{EventQueue, Gameplay, InputQueue};
 use ggez::event::KeyCode;
-use specs::{Entities, Join, ReadStorage, System, Write, WriteStorage};
-use specs::world::Index;
-use crate::{Gameplay, Immovable, InputQueue, Movable, Player, Position};
-use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
+use specs::{world::Index, Entities, Join, ReadStorage, System, Write, WriteStorage};
+
+use std::collections::HashMap;
 
 pub struct InputSystem {}
 
+// System implementation
 impl<'a> System<'a> for InputSystem {
     // Data
     type SystemData = (
+        Write<'a, EventQueue>,
         Write<'a, InputQueue>,
         Write<'a, Gameplay>,
         Entities<'a>,
@@ -20,7 +24,16 @@ impl<'a> System<'a> for InputSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut input_queue, mut gameplay, entities, mut positions, players, movables, immovables) = data;
+        let (
+            mut events,
+            mut input_queue,
+            mut gameplay,
+            entities,
+            mut positions,
+            players,
+            movables,
+            immovables,
+        ) = data;
 
         let mut to_move = Vec::new();
 
@@ -70,7 +83,10 @@ impl<'a> System<'a> for InputSystem {
                             // if it exists, we need to stop and not move anything
                             // if it doesn't exist, we stop because we found a gap
                             match immov.get(&pos) {
-                                Some(_id) => to_move.clear(),
+                                Some(_id) => {
+                                    to_move.clear();
+                                    events.events.push(Event::PlayerHitObstacle {})
+                                }
                                 None => break,
                             }
                         }
@@ -96,6 +112,9 @@ impl<'a> System<'a> for InputSystem {
                     _ => (),
                 }
             }
+
+            // Fire an event for the entity that just moved
+            events.events.push(Event::EntityMoved(EntityMoved { id }));
         }
     }
 }

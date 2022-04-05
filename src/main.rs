@@ -3,21 +3,25 @@
 
 extern crate core;
 
-use ggez::{conf, event::{self, KeyCode, KeyMods}, Context, GameResult, timer};
-use specs::{RunNow, World, WorldExt};
 use std::path;
 
+use ggez::{conf, Context, event::{self, KeyCode, KeyMods}, GameResult, timer};
+use specs::{RunNow, World, WorldExt};
+
+use crate::audio::*;
+use crate::components::*;
+use crate::map::*;
+use crate::resources::*;
+use crate::systems::*;
+
+mod audio;
+mod events;
 mod components;
 mod constants;
 mod entities;
 mod map;
 mod resources;
 mod systems;
-
-use crate::components::*;
-use crate::map::*;
-use crate::resources::*;
-use crate::systems::*;
 
 struct Game {
     world: World,
@@ -43,6 +47,12 @@ impl event::EventHandler<ggez::GameError> for Game {
             time.delta += timer::delta(context);
         }
 
+        // Run event system
+        {
+            let mut es = EventSystem { context };
+            es.run_now(&self.world);
+        }
+
         Ok(())
     }
 
@@ -61,7 +71,7 @@ impl event::EventHandler<ggez::GameError> for Game {
         _context: &mut Context,
         keycode: KeyCode,
         _keymods: KeyMods,
-        _repeat: bool
+        _repeat: bool,
     ) {
         println!("Key pressed: {:?}", keycode);
 
@@ -100,7 +110,8 @@ pub fn main() -> GameResult {
         .window_mode(conf::WindowMode::default().dimensions(800.0, 600.0))
         .add_resource_path(path::PathBuf::from("./resources"));
 
-    let (context, event_loop) = context_builder.build()?;
+    let (mut context, event_loop) = context_builder.build()?;
+    initialize_sounds(&mut world, &mut context);
 
     // Create the game state
     let game = Game { world };
