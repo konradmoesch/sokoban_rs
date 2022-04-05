@@ -66,6 +66,7 @@ impl<'a> System<'a> for InputSystem {
                     (end..=start).rev().collect::<Vec<_>>()
                 };
 
+                let mut  hit_obstacle = false;
                 for x_or_y in range {
                     let pos = if is_x {
                         (x_or_y, position.y)
@@ -85,12 +86,15 @@ impl<'a> System<'a> for InputSystem {
                             match immov.get(&pos) {
                                 Some(_id) => {
                                     to_move.clear();
-                                    events.events.push(Event::PlayerHitObstacle {})
+                                    hit_obstacle = true
                                 }
                                 None => break,
                             }
                         }
                     }
+                }
+                if hit_obstacle {
+                    events.events.push(Event::PlayerHitObstacle {});
                 }
             }
         }
